@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مخزن لام اسماش برجر | Lam Smash Burger Inventory</title>
+  <style>
+    body{margin:0;font-family:system-ui;background:#f3f4f6;padding:20px}
+   .container{max-width:900px;margin:0 auto}
+    .header{text-align:center;margin-bottom:20px}
+    h1{font-size:26px;font-weight:bold;margin:0}
+    .sub{font-size:16px;color:#6b7280;margin:4px 0}
+    .manager{font-size:14px;color:#2563eb;font-weight:600;margin-top:4px}
+   .card{background:white;padding:16px;border-radius:12px;box-shadow:0 4px 6px #0001;margin-bottom:16px;text-align:center}
+   .card p{color:#6b7280;margin:0}
+   .card h2{font-size:28px;color:#2563eb;margin:4px 0 0;font-weight:bold}
+   .search-bar{display:flex;gap:8px;margin-bottom:8px}
+   .search-bar input{flex:1;padding:12px;border:2px solid #2563eb;border-radius:8px;font-size:16px}
+   .form-box{background:white;padding:16px;border-radius:12px;box-shadow:0 4px 6px #0001;margin-bottom:16px}
+   .form-row{display:flex;gap:8px;margin-bottom:8px}
+   .form-row input{flex:1;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px;width:100%;box-sizing:border-box}
+   .btn{background:#2563eb;color:white;border:none;padding:12px 14px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:16px}
+   .btn:hover{filter:brightness(0.9)}
+   .btn-sm{padding:6px 12px;font-size:14px}
+   .btn-green{background:#16a34a}
+   .btn-gray{background:#6b7280}
+   .btn-red{background:#dc2626}
+   .btn-excel{background:#1d6f42}
+   .btn-telegram{background:#0088cc}
+   .btn-lock{background:#f59e0b}
+   .btn-del{background:transparent;color:#dc2626;border:none;cursor:pointer;text-decoration:underline}
+   .btn-full{width:100%;margin-top:8px} /* زر كامل العرض */
+    table{width:100%;background:white;border-radius:12px;box-shadow:0 4px 6px #0001;border-collapse:collapse;overflow:hidden}
+    thead{background:#e5e7eb;color:#374151}
+    th,td{padding:12px;text-align:right;border-bottom:1px solid #e5e7eb;font-size:14px}
+    tr:hover{background:#f9fafb}
+   .red{color:#dc2626;font-weight:bold}
+   .bold{font-weight:600}
+   .qty-box{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+   .alert{font-size:12px;color:#dc2626;text-align:center;margin-top:-10px;margin-bottom:10px}
+    .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:#0006;display:flex;align-items:center;justify-content:center;z-index:50}
+   .modal-box{background:white;padding:20px;border-radius:12px;max-width:500px;width:90%;max-height:80vh;overflow:auto}
+   .in{color:#16a34a;font-weight:bold}
+   .out{color:#dc2626;font-weight:bold}
+   .note{font-size:12px;color:#6b7280;text-align:center;margin-top:8px}
+   .locked{opacity:0.5;pointer-events:none}
+   .hint{font-size:12px;color:#6b7280;text-align:center;margin-top:4px;margin-bottom:12px}
+   .empty-box{text-align:center;padding:30px;background:white;border-radius:12px;box-shadow:0 4px 6px #0001}
+   .title-sm{font-weight:700;margin:0 0 10px 0;font-size:16px;text-align:center}
+   @media(max-width:600px){ th,td{padding:8px;font-size:13px} .qty-box{gap:4px} }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const MAX_LOGS = 500;
+    const PASSWORD = "1234"; 
+
+    function App() {
+      const [items, setItems] = React.useState(() => {
+        const saved = localStorage.getItem('lamsmash_mkhzan_items');
+        return saved? JSON.parse(saved) : [
+          { id: 1, name: 'لحم برجر | Beef Patties', unit: 'كرتون | Carton', qty: 3 },
+          { id: 2, name: 'دجاج | Chicken', unit: 'كرتون | Carton', qty: 2 },
+          { id: 3, name: 'جبن شرائح | Cheese Slices', unit: 'كرتون | Carton', qty: 1 },
+        ];
+      });
+      const [logs, setLogs] = React.useState(() => JSON.parse(localStorage.getItem('lamsmash_mkhzan_logs') || '[]'));
+      const [search, setSearch] = React.useState('');
+      const [newName, setNewName] = React.useState('');
+      const [newQty, setNewQty] = React.useState('');
+      const [newUnit, setNewUnit] = React.useState('');
+      const [showLogs, setShowLogs] = React.useState(false);
+      const [isLocked, setIsLocked] = React.useState(true); 
+
+      React.useEffect(() => {
+        localStorage.setItem('lamsmash_mkhzan_items', JSON.stringify(items));
+        localStorage.setItem('lamsmash_mkhzan_logs', JSON.stringify(logs.slice(0, MAX_LOGS)));
+      }, [items, logs]);
+
+      const addItem = () => {
+        if(!newName.trim() || !newQty || isNaN(newQty)) return alert('ادخل اسم الصنف والكمية\nEnter name and qty');
+        const name = newName.trim();
+        const qty = Number(newQty);
+        const unit = newUnit.trim() || 'حبة | Pcs';
+
+        const existing = items.find(i => i.name.toLowerCase().includes(name.toLowerCase()));
+        if(existing){
+          updateQty(existing.id, qty, 'توريد | Supply');
+        } else {
+          const item = { id: Date.now(), name, unit, qty };
+          setItems([...items, item]);
+          addLog(item.id, name, 'دخول | In', qty, 'إضافة صنف جديد | New Item');
+        }
+        setNewName(''); setNewQty(''); setNewUnit('');
+      };
+
+      const deleteItem = (id) => {
+        if(!isLocked && confirm('متأكد تبي تحذف الصنف؟\nAre you sure to delete?')) {
+          setItems(items.filter(item => item.id!== id));
+        }
+      };
+
+      const updateQty = (id, change, reason) => {
+        if(isLocked) return alert('النظام مقفل. افتح القفل اول\nSystem is locked. Unlock first');
+        setItems(prev => prev.map(item => {
+          if(item.id === id){
+            const newQty = item.qty + change;
+            if(newQty < 0) return item;
+            addLog(id, item.name, change > 0 ? 'دخول | In' : 'خروج | Out', Math.abs(change), reason);
+            return {...item, qty: newQty};
+          }
+          return item;
+        }));
+      };
+
+      const addLog = (itemId, name, type, qty, reason) => {
+        const log = { id: Date.now(), date: new Date().toLocaleString('ar-SA'), itemId, name, type, qty, reason };
+        setLogs(prev => [log, ...prev].slice(0, MAX_LOGS));
+      };
+
+      const toggleLock = () => {
+        if(isLocked){
+          const pass = prompt('ادخل كلمة السر للفتح:\nEnter password to unlock:');
+          if(pass === PASSWORD) setIsLocked(false);
+          else alert('كلمة السر خطأ\nWrong password');
+        } else {
+          setIsLocked(true);
+        }
+      };
+
+      const exportExcel = () => {
+        const itemsSheet = XLSX.utils.json_to_sheet(items.map(i => ({
+          'اسم الصنف | Item': i.name, 'الوحدة | Unit': i.unit, 'الكمية | Qty': i.qty, 'الحالة | Status': i.qty <= 1 ? 'ناقص | Low' : 'متوفر | OK'
+        })));
+        const logsSheet = XLSX.utils.json_to_sheet(logs.map(l => ({
+          'التاريخ | Date': l.date, 'الصنف | Item': l.name, 'النوع | Type': l.type, 'الكمية | Qty': l.qty, 'السبب | Reason': l.reason
+        })));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, itemsSheet, "الأصناف | Items");
+        XLSX.utils.book_append_sheet(wb, logsSheet, "الحركات | Logs");
+        XLSX.writeFile(wb, `LamSmash_Burger_${new Date().toLocaleDateString('ar-SA')}.xlsx`);
+      };
+
+      const backupJSON = () => {
+        const data = { store: 'Lam Smash Burger | مخزن لام اسماش برجر', manager: 'Hassan | حسن', items, logs, date: new Date().toLocaleString('ar-SA') };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `LamSmash_Backup_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const filteredItems = search.length > 0 
+        ? items.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
+        : items;
+
+      const lowStock = items.filter(item => item.qty <= 1);
+
+      return (
+        <div className="container">
+          <div className="header">
+            <h1>📦 مخزن لام اسماش برجر</h1>
+            <div className="sub">Lam Smash Burger Inventory</div>
+            <div className="manager">المدير: حسن | Manager: Hassan</div>
+          </div>
+
+          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',justifyContent:'center'}}>
+            <button onClick={toggleLock} className="btn btn-lock">
+              {isLocked ? '🔒 مقفل | Locked' : '🔓 مفتوح | Unlocked'}
+            </button>
+            <button onClick={() => setShowLogs(true)} className="btn">📜 الحركات | Logs</button>
+            <button onClick={exportExcel} className="btn btn-excel">📊 Excel</button>
+            <button onClick={backupJSON} className="btn btn-telegram">☁️ نسخة | Backup</button>
+          </div>
+
+          {lowStock.length > 0 &&
+            <p className="alert">⚠️ تنبيه: {lowStock.length} أصناف كميتها قليلة | {lowStock.length} Low Stock Items</p>
+          }
+
+          <div className="search-bar">
+            <input 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="🔍 ابحث عن صنف | Search item..."
+            />
+            {search && <button onClick={() => setSearch('')} className="btn btn-gray">مسح | Clear</button>}
+          </div>
+
+          {/* مربع الإضافة الجديد - سطرين */}
+          <div className="form-box">
+            <p className="title-sm">+ إضافة صنف او توريد | Add Item or Supply</p>
+            <div className="form-row">
+              <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="اسم الصنف | Item Name"/>
+            </div>
+            <div className="form-row">
+              <input type="number" value={newQty} onChange={e => setNewQty(e.target.value)} placeholder="الكمية | Qty" inputMode="numeric"/>
+              <input value={newUnit} onChange={e => setNewUnit(e.target.value)} placeholder="الوحدة | Unit e.g كرتون"/>
+            </div>
+            <button onClick={addItem} className="btn btn-green btn-full">+ إضافة | Add</button>
+            <p className="hint">لو الصنف موجود بيزيد الكمية تلقائي | If exists, qty will increase</p>
+          </div>
+
+          <div className={`card ${isLocked ? 'locked' : ''}`} style={{textAlign:'center'}}>
+            <p>عرض {filteredItems.length} من {items.length} | Showing {filteredItems.length} of {items.length}</p>
+            <h2>{items.length} صنف | Total Items</h2>
+          </div>
+
+          {filteredItems.length > 0 ? (
+            <table className={isLocked ? 'locked' : ''}>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الصنف | Item</th>
+                  <th>الوحدة | Unit</th>
+                  <th>الكمية | Qty</th>
+                  <th>حركة | Move</th>
+                  <th>حذف | Del</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item, index) => (
+                  <tr key={item.id}>
+                    <td>{index + 1}</td>
+                    <td className="bold">{item.name}</td>
+                    <td>{item.unit}</td>
+                    <td className={item.qty <= 1? 'red' : 'bold'}>{item.qty}</td>
+                    <td>
+                      <div className="qty-box">
+                        <button onClick={() => updateQty(item.id, -1, 'سحب يومي | Daily Out')} className="btn btn-sm btn-red">-1</button>
+                        <button onClick={() => updateQty(item.id, +1, 'توريد | Supply')} className="btn btn-sm btn-green">+1</button>
+                      </div>
+                    </td>
+                    <td><button onClick={() => deleteItem(item.id)} className="btn-del">حذف</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="empty-box">
+              <p>🔍 لا نتائج | No results for "{search}"</p>
+            </div>
+          )}
+
+          {showLogs &&
+            <div className="modal" onClick={() => setShowLogs(false)}>
+              <div className="modal-box" onClick={e => e.stopPropagation()}>
+                <h2 style={{marginTop:0}}>📜 سجل الحركات | Activity Logs</h2>
+                <p className="note">آخر {MAX_LOGS} حركة | Last {MAX_LOGS} actions</p>
+                {logs.length === 0? <p>لا توجد حركات | No logs yet</p> :
+                  logs.map(log => (
+                    <div key={log.id} style={{borderBottom:'1px solid #eee',padding:'8px 0',fontSize:14}}>
+                      <span className={log.type.includes('دخول')? 'in' : 'out'}>{log.type} {log.qty}</span>
+                      <span> {log.name}</span>
+                      <div style={{color:'#6b7280',fontSize:12}}>{log.date} - {log.reason}</div>
+                    </div>
+                  ))
+                }
+                <button onClick={() => setShowLogs(false)} className="btn" style={{marginTop:10,width:'100%'}}>إغلاق | Close</button>
+              </div>
+            </div>
+          }
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
