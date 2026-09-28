@@ -1,1 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>صوصات لم اسماش</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      color: #222;
+    }
+
+    /* العنوان */
+    .title {
+      background: white;
+      padding: 25px 0;
+      overflow: hidden;
+      border-bottom: 3px solid #0066ff;
+    }
+
+    .title h1 {
+      margin: 0;
+      color: #0066ff;
+      font-size: 42px;
+      font-weight: bold;
+      white-space: nowrap;
+
+      display: inline-block;
+
+      animation: moveTitle 8s linear infinite;
+    }
+
+    @keyframes moveTitle {
+
+      from {
+        transform: translateX(100%);
+      }
+
+      to {
+        transform: translateX(-100%);
+      }
+
+    }
+
+
+    /* أزرار الصوصات */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 25px 10px;
+      flex-wrap: wrap;
+    }
+
+    .buttons button {
+      background: #0066ff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+
+      padding: 14px 30px;
+
+      font-size: 20px;
+      font-weight: bold;
+
+      cursor: pointer;
+
+      transition: 0.3s;
+    }
+
+    .buttons button:hover {
+      background: #004dcc;
+      transform: scale(1.05);
+    }
+
+
+    /* صندوق المكونات */
+    .box {
+      width: 92%;
+      max-width: 600px;
+
+      margin: 10px auto 30px;
+
+      background: white;
+
+      padding: 25px;
+
+      border-radius: 18px;
+
+      box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+    }
+
+    .box h2 {
+      color: #0066ff;
+      font-size: 28px;
+      margin-top: 0;
+      border-bottom: 2px solid #0066ff;
+      padding-bottom: 12px;
+    }
+
+
+    /* كل مكون */
+    .ingredient {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      background: #f5f7fa;
+
+      margin: 10px 0;
+
+      padding: 14px 16px;
+
+      border-radius: 10px;
+
+      font-size: 18px;
+    }
+
+    .ingredient .name {
+      font-weight: bold;
+    }
+
+    .ingredient .amount {
+      color: #0066ff;
+      font-weight: bold;
+    }
+
+
+    /* الجوال */
+    @media (max-width: 500px) {
+
+      .title h1 {
+        font-size: 32px;
+      }
+
+      .buttons button {
+        font-size: 18px;
+        padding: 12px 20px;
+      }
+
+      .box {
+        width: 94%;
+      }
+
+      .ingredient {
+        font-size: 16px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- العنوان المتحرك -->
+
+  <div class="title">
+
+    <h1>
+      صوصات لم اسماش
+    </h1>
+
+  </div>
+
+
+  <!-- أسماء الصوصات -->
+
+  <div class="buttons">
+
+    <button onclick="showSauce('bacon')">
+      بيكن
+    </button>
+
+    <button onclick="showSauce('maple')">
+      ميبل
+    </button>
+
+    <button onclick="showSauce('signature')">
+      شجنتشر
+    </button>
+
+  </div>
+
+
+  <!-- المكونات -->
+
+  <div class="box" id="ingredients">
+
+    <h2>
+      اختر الصوص
+    </h2>
+
+    <div class="ingredient">
+      <span class="name">
+        اضغط على أحد الصوصات بالأعلى
+      </span>
+    </div>
+
+  </div>
+
+
+  <script>
+
+    function showSauce(sauce) {
+
+      let box = document.getElementById("ingredients");
+
+
+      /* البيكن */
+
+      if (sauce === "bacon") {
+
+        box.innerHTML = `
+
+          <h2>صوص البيكن</h2>
+
+          <div class="ingredient">
+            <span class="name">مايونيز</span>
+            <span class="amount">3.5 كيلو</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">كاتشب</span>
+            <span class="amount">900 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">خردل</span>
+            <span class="amount">200 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">فلفل أسود</span>
+            <span class="amount">30 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">بابريكا حلوة</span>
+            <span class="amount">30 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">ثوم</span>
+            <span class="amount">20 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">صلصة ورشستر</span>
+            <span class="amount">30 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">صلصة المحار</span>
+            <span class="amount">100 جرام</span>
+          </div>
+
+        `;
+
+      }
+
+
+      /* الميبل */
+
+      else if (sauce === "maple") {
+
+        box.innerHTML = `
+
+          <h2>صوص الميبل</h2>
+
+          <div class="ingredient">
+            <span class="name">صوص فرنسي</span>
+            <span class="amount">4.5 كيلو</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">صلصة ورشستر</span>
+            <span class="amount">200 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">بصل مطحون</span>
+            <span class="amount">5 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">بابريكا حلوة</span>
+            <span class="amount">5 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">زبدة</span>
+            <span class="amount">60 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">شيرة البانكيك</span>
+            <span class="amount">250 جرام</span>
+          </div>
+
+        `;
+
+      }
+
+
+      /* الشجنتشر */
+
+      else if (sauce === "signature") {
+
+        box.innerHTML = `
+
+          <h2>صوص الشجنتشر</h2>
+
+          <div class="ingredient">
+            <span class="name">مايونيز</span>
+            <span class="amount">3.5 كيلو</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">خردل</span>
+            <span class="amount">200 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">كاتشب</span>
+            <span class="amount">900 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">صلصة ورشستر</span>
+            <span class="amount">70 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">ثوم مطحون</span>
+            <span class="amount">50 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">فلفل أسود</span>
+            <span class="amount">30 جرام</span>
+          </div>
+
+          <div class="ingredient">
+            <span class="name">صلصة حارة</span>
+            <span class="amount">25 جرام</span>
+          </div>
+
+        `;
+
+      }
+
+    }
+
+  </script>
+
+</body>
+
+  </html>
